@@ -1,8 +1,6 @@
-# SciGraphCli  structure
+# SciGraphCli 
 
-## Why?
-
-@todo
+> still a work in progress
 
 
 ### Install
