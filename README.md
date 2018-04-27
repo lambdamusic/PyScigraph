@@ -7,15 +7,11 @@
 
 ### Install
 
+Note: requires [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/).
+
 ```
-$ virtualenv venv
-$ . venv/bin/activate
+$ mkvirtualenv scigraphcli
 $ pip install --editable .
-# https://stackoverflow.com/questions/30306099/pip-install-editable-vs-python-setup-py-develop
 ```
 
-Or quicker:
-
-```
-./install-py2 # or ./install-py3
-```
+PS: why [--editable](# https://stackoverflow.com/questions/30306099/pip-install-editable-vs-python-setup-py-develop)?

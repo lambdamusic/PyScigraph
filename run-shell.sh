@@ -9,4 +9,4 @@ clear
 echo "=================="
 echo "Opening iPython with pycli pre-loaded..."
 echo "=================="
-ipython profile.py --no-simple-prompt --no-confirm-exit -i
+ipython shellprofile.py --no-simple-prompt --no-confirm-exit -i
