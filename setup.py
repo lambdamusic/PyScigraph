@@ -14,7 +14,7 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        scigraphcli = scigraphcli.__main__:main_cli
+        scigraphcli = scigraphcli.main:main_cli
         quicktest_scigraphcli = scigraphcli.tests.quicktest:quicktest_cli
     ''',
 )
