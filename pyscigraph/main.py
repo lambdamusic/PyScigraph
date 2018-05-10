@@ -30,7 +30,9 @@ $ scigraphcli --isbn 978-90-481-9751-4
 @click.option('--verbose', is_flag=True, help='Verbose logs')
 @click.pass_context
 def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, examples=False, verbose=False):
-    """SciGraph CLI: get Springer Nature SciGraph data."""
+    """SciGraph CLI: get Springer Nature SciGraph data.
+(see: http://scigraph.springernature.com/explorer/api/)    
+    """
 
     if examples:
         click.secho(CMD_LINE_EXAMPLES, fg="green")

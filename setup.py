@@ -1,8 +1,23 @@
 from setuptools import setup, find_packages
 
+# trick to manage package versions in one place only
+# http://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package
+import re
+VERSIONFILE="pyscigraph/VERSION.py"
+verstrline = open(VERSIONFILE, "rt").read()
+VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+mo = re.search(VSRE, verstrline, re.M)
+if mo:
+    VERSIONSTRING = mo.group(1)
+else:
+    raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+
+
+
 setup(
-    name = 'scigraphcli',
-    version = '0.1.0',
+    name = 'pyscigraph',
+    version = VERSIONSTRING,
+    description='Python API for accessing Springer Nature SciGraph Linked Open Data.',
     packages = find_packages(),
     include_package_data=True,
     install_requires=[

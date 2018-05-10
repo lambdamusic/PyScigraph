@@ -1,4 +1,4 @@
-# SciGraphCli 
+# PySciGraph 
 
 > still a work in progress
 
@@ -8,7 +8,7 @@
 Note: requires [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/).
 
 ```
-$ mkvirtualenv scigraphcli
+$ mkvirtualenv pyscigraph
 $ pip install --editable .
 ```
 
