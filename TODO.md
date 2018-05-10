@@ -1,7 +1,7 @@
 
 # TODOs
 
-* add to Pypi
+* add to Pypi @done
 
 * better rendering of results 
 
