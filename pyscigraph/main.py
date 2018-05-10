@@ -10,11 +10,11 @@ from .lib import *
 
 
 CMD_LINE_EXAMPLES = """EXAMPLES:
-$ scigraphcli --doi 10.1038/171737a0 
+$ pyscigraph --doi 10.1038/171737a0 
 
-$ scigraphcli --issn 2365-631X
+$ pyscigraph --issn 2365-631X
 
-$ scigraphcli --isbn 978-90-481-9751-4
+$ pyscigraph --isbn 978-90-481-9751-4
 """
 
 
@@ -26,10 +26,11 @@ $ scigraphcli --isbn 978-90-481-9751-4
 @click.option('--issn', help='Search a ISSN')
 @click.option('--isbn', help='Search a ISBN')
 @click.option('--uri', help='Get a SciGraph URI (default)')
+@click.option('--rdf', help='Return RDF: ttl, xml, n3, jsonld')
 @click.option('--examples', is_flag=True, help='Show some examples')
 @click.option('--verbose', is_flag=True, help='Verbose logs')
 @click.pass_context
-def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, examples=False, verbose=False):
+def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,  examples=False, verbose=False):
     """SciGraph CLI: get Springer Nature SciGraph data.
 (see: http://scigraph.springernature.com/explorer/api/)    
     """
@@ -43,24 +44,34 @@ def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, examples=
         click.echo(ctx.get_help())
         return
  
+
+    # steps:
+    # get url and rdf content 
+    # instantiate entity
+    # get useful fields from entity and print out
+
+
     if doi:
-        scigraph_redirect(doi, "doi", verbose)
-
+        response = pull_redirect_URL(doi, "doi", verbose)
     if issn:
-        scigraph_redirect(issn, "issn", verbose)
-
+        response = pull_redirect_URL(issn, "issn", verbose)
     if isbn:
-        scigraph_redirect(isbn, "isbn", verbose)
+        response = pull_redirect_URL(isbn, "isbn", verbose)
 
     if uri:
-        scigraph_URI(uri, verbose)
+        reponse = pull_lod_URI(uri, verbose)
 
     for arg in args:
-        print('passed argument :: {}'.format(arg))
-        # pull_data_from_scigraph(arg)
-        scigraph_URI(arg, verbose)
+        #multiple args ignored, only last one kept
+        # print('passed argument :: {}'.format(arg))
+        response  = pull_lod_URI(arg, verbose)
 
-        
+    if response:
+        entity = reify_rdf_object(response.url, response.text, verbose)
+        print_report(response.url, entity)
+    else:
+        click.secho("Not found", fg="green")
+
 
 if __name__ == '__main__':
     main_cli()

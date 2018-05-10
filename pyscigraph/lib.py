@@ -12,7 +12,7 @@ import ontospy
 
 
 
-def scigraph_redirect(val, kind, verbose):
+def pull_redirect_URL(val, kind, verbose):
     base = 'https://scigraph.springernature.com/api/redirect'
     headers = {'Accept': 'application/rdf+xml'}
     if kind == "doi":
@@ -24,28 +24,22 @@ def scigraph_redirect(val, kind, verbose):
     else:
         click.secho("Value no valid", fg="red")
         return False                     
-    response = get_url_contents(base, headers, payload, verbose)
-    if response:
-        return parse_rdf(response.url, response.text, verbose)
-    else:
-        click.secho("Not found", fg="green")
-        return False
+    response = _get_url_contents(base, headers, payload, verbose)
+    return response 
 
-def scigraph_URI(uri, verbose):
+
+def pull_lod_URI(uri, verbose):
     if not uri.startswith("http"):
         click.secho("Not a valid URI", fg="red")
         return False
     headers = {'Accept': 'application/rdf+xml'}                   
-    response = get_url_contents(uri, headers, {}, verbose)
-    if response:
-        return parse_rdf(response.url, response.text, verbose)
-    else:
-        click.secho("Not found", fg="green")
-        return False
+    response = _get_url_contents(uri, headers, {}, verbose)
+    return response
 
 
 
-def get_url_contents(base_url, headers, payload, verbose):
+
+def _get_url_contents(base_url, headers, payload, verbose):
     if verbose: click.secho("... requesting rdf", fg="green")
     r = requests.get(base_url, headers=headers, params=payload)
     if r.status_code == 404:
@@ -54,23 +48,25 @@ def get_url_contents(base_url, headers, payload, verbose):
         if r.url.startswith("https://"):
             # https ok for retrieval, but rdf payload always uses http uris
             r.url = r.url.replace("https://", "http://")
-        if True: click.secho(r.url, fg="green")
+        if verbose: click.secho("Found " + r.url, fg="green")
         return r
 
 
-def parse_rdf(entity_uri, rdf_text, verbose):
+
+
+def reify_rdf_object(entity_uri, rdf_text, verbose):
     """Parse RDF for an entity using ontospy"""    
     x = ontospy.Ontospy()
     if verbose: click.secho("... loading graph", fg="green")
     x.load_rdf(text=rdf_text)
+    click.secho("Parsing %d triples.." % x.triplesCount())
     if verbose: click.secho("... building entity...", fg="green")
     entity = x.build_entity_from_uri(entity_uri)
-    if verbose: click.secho("... querying label...", fg="green")
-    print(entity.bestLabel())
-    if verbose: click.secho("... querying type...", fg="green")
-    print(entity.rdftype)
     return entity
 
 
 
-
+def print_report(url, entity):
+    click.secho("URI: " + url)
+    click.secho("Title: " + entity.bestLabel())
+    click.secho("Types: " + " ".join([x for x in entity.rdftype_qname]))

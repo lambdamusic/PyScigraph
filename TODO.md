@@ -7,6 +7,7 @@
 
 * raw rdf return (turtle?)
 
+* catch error with wrong URL 
 
 
 ### Ideal interaction 
