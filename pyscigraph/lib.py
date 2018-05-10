@@ -67,6 +67,11 @@ def reify_rdf_object(entity_uri, rdf_text, verbose):
 
 
 def print_report(url, entity):
-    click.secho("URI: " + url)
-    click.secho("Title: " + entity.bestLabel())
-    click.secho("Types: " + " ".join([x for x in entity.rdftype_qname]))
+    click.echo(click.style('URI: ', fg='green') + click.style(' ' + url, reset=True))
+    click.echo(click.style('Title: ', fg='green') + click.style(' ' + entity.bestLabel(), reset=True))
+    _types = " ".join([x for x in entity.rdftype_qname])
+    click.echo(click.style('Types: ', fg='green') + click.style(' ' + _types, reset=True))
+
+
+
+
