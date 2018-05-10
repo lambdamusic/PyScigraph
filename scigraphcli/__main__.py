@@ -10,8 +10,8 @@ from .lib import *
 
 
 CMD_LINE_EXAMPLES = """SOME EXAMPLES HERE:
-$ pycli 
- => returns some nice text
+$ scigraphcli 10.1038/171737a0 
+ => returns info based on DOI
 """
 
 
@@ -35,8 +35,9 @@ def main_cli(ctx, args=None, examples=False):
  
     for arg in args:
         print('passed argument :: {}'.format(arg))
-        uri, rdf = get_doi(arg)
-        rdf_parse_type(uri, rdf)
+        # pull_data_from_scigraph(arg)
+        new_pull_data_with_ontospy(arg)
+
         
 
 if __name__ == '__main__':

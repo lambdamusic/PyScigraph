@@ -1,3 +1,4 @@
 # note when used as a library put these in setup.py
-click==6.6
-requests=2.18.3
+click>=6.6
+requests>=2.18.3
+ontospy>=1.9

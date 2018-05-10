@@ -10,6 +10,7 @@ setup(
         'Requests==2.18.3',
         'rdflib==4.2.2',
         'rdflib-jsonld==0.4.0',
+        'ontospy>=1.9',
     ],
     entry_points='''
         [console_scripts]
