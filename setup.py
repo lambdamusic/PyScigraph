@@ -29,7 +29,7 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        scigraphcli = scigraphcli.main:main_cli
-        quicktest_scigraphcli = scigraphcli.tests.quicktest:quicktest_cli
+        scigraphcli = pyscigraph.main:main_cli
+        quicktest_scigraphcli = pyscigraph.tests.quicktest:quicktest_cli
     ''',
 )
