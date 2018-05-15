@@ -9,6 +9,12 @@
 
 * catch error with wrong URL 
 
+* refactor into class model
+
+* allow to instantiate Ontospy ORM with SG structures
+
+
+
 
 ### Ideal interaction 
 

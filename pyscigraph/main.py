@@ -31,8 +31,8 @@ $ pyscigraph --isbn 978-90-481-9751-4
 @click.option('--verbose', is_flag=True, help='Verbose logs')
 @click.pass_context
 def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,  examples=False, verbose=False):
-    """SciGraph CLI: get Springer Nature SciGraph data.
-(see: http://scigraph.springernature.com/explorer/api/)    
+    """PySciGraph: client for Springer Nature SciGraph APIs.
+(see: http://scigraph.springernature.com)    
     """
 
     if examples:
@@ -44,31 +44,19 @@ def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,
         click.echo(ctx.get_help())
         return
  
-
-    # steps:
-    # get url and rdf content 
-    # instantiate entity
-    # get useful fields from entity and print out
-
+    s = SciGraphClient(verbose=verbose)
 
     if doi:
-        response = pull_redirect_URL(doi, "doi", verbose)
-    if issn:
-        response = pull_redirect_URL(issn, "issn", verbose)
-    if isbn:
-        response = pull_redirect_URL(isbn, "isbn", verbose)
+        s.get_object_from_id(doi=doi)
+    elif issn:
+        s.get_object_from_id(issn=issn)
+    elif isbn:
+        s.get_object_from_id(isbn=isbn)
+    elif uri:
+        s.get_object_from_id(uri=uri)
 
-    if uri:
-        reponse = pull_lod_URI(uri, verbose)
-
-    for arg in args:
-        #multiple args ignored, only last one kept
-        # print('passed argument :: {}'.format(arg))
-        response  = pull_lod_URI(arg, verbose)
-
-    if response:
-        entity = reify_rdf_object(response.url, response.text, verbose)
-        print_report(response.url, entity)
+    if s.entity:
+        s.print_report()
     else:
         click.secho("Not found", fg="green")
 

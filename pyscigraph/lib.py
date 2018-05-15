@@ -12,66 +12,89 @@ import ontospy
 
 
 
-def pull_redirect_URL(val, kind, verbose):
-    base = 'https://scigraph.springernature.com/api/redirect'
-    headers = {'Accept': 'application/rdf+xml'}
-    if kind == "doi":
-        payload = {'doi': val}
-    elif kind == "issn":
-        payload = {'issn': val} 
-    elif kind == "isbn":
-        payload = {'isbn': val}     
-    else:
-        click.secho("Value no valid", fg="red")
-        return False                     
-    response = _get_url_contents(base, headers, payload, verbose)
-    return response 
+
+class SciGraphClient(object):
+    """
+    Base class.
+    Args:
+        *args (list): list of arguments
+        **kwargs (dict): dict of keyword arguments
+    Attributes:
+        self
+    """
+    redirect_url = 'https://scigraph.springernature.com/api/redirect'
+    default_headers = {'Accept': 'application/rdf+xml'}
+
+    def __init__(self, *args, **kwargs):
+        allowed_keys = ['verbose']
+        self.__dict__.update((k, False) for k in allowed_keys)
+        self.__dict__.update((k, v) for k, v in kwargs.items() if k in allowed_keys)
+        self.response = None
+
+        self.entity = None
+
+    def get_data_from_id(self, **kwargs):
+        """
+        Function.
+        """
+        allowed_keys = ['uri', 'doi', 'issn', 'isbn']
+        for k, v in kwargs.items():
+            if k in allowed_keys:
+                payload = {k: v}
+                self.response = self._do_request(payload)
+                return self.response
+        if self.verbose: click.secho("Valid arguments: " + str(allowed_keys), fg="green")
+        return None
+
+    def get_object_from_id(self, **kwargs):
+        """
+        Function.
+        """
+        self.get_data_from_id(**kwargs)
+        if self.response:
+            rdf_url, rdf_text = self.response.url, self.response.text
+            x = ontospy.Ontospy()
+            if self.verbose: click.secho("... loading graph", fg="green")
+            x.load_rdf(text=rdf_text)
+            click.secho("Parsing %d triples.." % x.triplesCount())
+            if self.verbose: click.secho("... building entity...", fg="green")
+            self.entity = x.build_entity_from_uri(rdf_url)
+            return self.entity
+        else:
+            return None
+
+    def _do_request(self, payload, headers=None):
+        """
+        """
+        if not headers:
+            headers = self.default_headers
+        if 'uri' in payload:
+            url = payload['uri']
+            payload = {}
+        else:
+            url = self.redirect_url
+        if self.verbose: click.secho("... requesting rdf", fg="green")
+        
+        r = requests.get(url, headers=headers, params=payload)
+        
+        if r.status_code == 404:
+            return False
+        else:
+            if r.url.startswith("https://"):
+                # https ok for retrieval, but rdf payload always uses http uris
+                r.url = r.url.replace("https://", "http://")
+            if self.verbose: click.secho("Found " + r.url, fg="green")
+            return r
 
 
-def pull_lod_URI(uri, verbose):
-    if not uri.startswith("http"):
-        click.secho("Not a valid URI", fg="red")
-        return False
-    headers = {'Accept': 'application/rdf+xml'}                   
-    response = _get_url_contents(uri, headers, {}, verbose)
-    return response
 
-
-
-
-def _get_url_contents(base_url, headers, payload, verbose):
-    if verbose: click.secho("... requesting rdf", fg="green")
-    r = requests.get(base_url, headers=headers, params=payload)
-    if r.status_code == 404:
-        return False
-    else:
-        if r.url.startswith("https://"):
-            # https ok for retrieval, but rdf payload always uses http uris
-            r.url = r.url.replace("https://", "http://")
-        if verbose: click.secho("Found " + r.url, fg="green")
-        return r
-
-
-
-
-def reify_rdf_object(entity_uri, rdf_text, verbose):
-    """Parse RDF for an entity using ontospy"""    
-    x = ontospy.Ontospy()
-    if verbose: click.secho("... loading graph", fg="green")
-    x.load_rdf(text=rdf_text)
-    click.secho("Parsing %d triples.." % x.triplesCount())
-    if verbose: click.secho("... building entity...", fg="green")
-    entity = x.build_entity_from_uri(entity_uri)
-    return entity
-
-
-
-def print_report(url, entity):
-    click.echo(click.style('URI: ', fg='green') + click.style(' ' + url, reset=True))
-    click.echo(click.style('Title: ', fg='green') + click.style(' ' + entity.bestLabel(), reset=True))
-    _types = " ".join([x for x in entity.rdftype_qname])
-    click.echo(click.style('Types: ', fg='green') + click.style(' ' + _types, reset=True))
-
+    def print_report(self):
+        if self.entity and self.response:
+            rdf_url, rdf_text = self.response.url, self.response.text
+            click.echo(click.style('URI: ', fg='green') + click.style(' ' + rdf_url, reset=True))
+            click.echo(click.style('Title: ', fg='green') + click.style(' ' + self.entity.bestLabel(), reset=True))
+            _types = " ".join([x for x in self.entity.rdftype_qname])
+            click.echo(click.style('Types: ', fg='green') + click.style(' ' + _types, reset=True))
 
 
 
