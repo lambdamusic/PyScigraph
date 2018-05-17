@@ -44,6 +44,11 @@ def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,
         click.echo(ctx.get_help())
         return
  
+    valid_rdf_opts = ['ttl', 'xml', 'n3', 'jsonld']
+    if rdf and rdf not in valid_rdf_opts:
+        click.secho("RDF options: " + str(valid_rdf_opts), fg="green")
+        return
+
     s = SciGraphClient(verbose=verbose)
 
     if doi:
@@ -56,7 +61,11 @@ def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,
         s.get_object_from_id(uri=uri)
 
     if s.entity:
-        s.print_report()
+        if rdf:
+            # TODO different serializatiions
+            print s.entity.rdf_source()
+        else:
+            s.print_report()
     else:
         click.secho("Not found", fg="green")
 

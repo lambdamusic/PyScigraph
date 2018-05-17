@@ -22,8 +22,8 @@ class SciGraphClient(object):
     Attributes:
         self
     """
-    redirect_url = 'https://scigraph.springernature.com/api/redirect'
-    default_headers = {'Accept': 'application/rdf+xml'}
+    _redirect_url = 'https://scigraph.springernature.com/api/redirect'
+    _default_headers = {'Accept': 'application/rdf+xml'}
 
     def __init__(self, *args, **kwargs):
         allowed_keys = ['verbose']
@@ -35,7 +35,7 @@ class SciGraphClient(object):
 
     def get_data_from_id(self, **kwargs):
         """
-        Function.
+        Function.#TODO
         """
         allowed_keys = ['uri', 'doi', 'issn', 'isbn']
         for k, v in kwargs.items():
@@ -48,7 +48,7 @@ class SciGraphClient(object):
 
     def get_object_from_id(self, **kwargs):
         """
-        Function.
+        Function.#TODO
         """
         self.get_data_from_id(**kwargs)
         if self.response:
@@ -56,7 +56,7 @@ class SciGraphClient(object):
             x = ontospy.Ontospy()
             if self.verbose: click.secho("... loading graph", fg="green")
             x.load_rdf(text=rdf_text)
-            click.secho("Parsing %d triples.." % x.triplesCount())
+            click.secho("Parsing %d triples.." % x.triplesCount(), fg="green")
             if self.verbose: click.secho("... building entity...", fg="green")
             self.entity = x.build_entity_from_uri(rdf_url)
             return self.entity
@@ -67,12 +67,12 @@ class SciGraphClient(object):
         """
         """
         if not headers:
-            headers = self.default_headers
+            headers = self._default_headers
         if 'uri' in payload:
             url = payload['uri']
             payload = {}
         else:
-            url = self.redirect_url
+            url = self._redirect_url
         if self.verbose: click.secho("... requesting rdf", fg="green")
         
         r = requests.get(url, headers=headers, params=payload)
