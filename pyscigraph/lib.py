@@ -3,6 +3,7 @@ import rdflib
 import rdflib_jsonld
 import click
 import ontospy
+from ontospy.core.utils import firstEnglishStringInList
 
 # Examples
 
@@ -58,7 +59,8 @@ class SciGraphClient(object):
             x.load_rdf(text=rdf_text)
             click.secho("Parsing %d triples.." % x.triplesCount(), fg="green")
             if self.verbose: click.secho("... building entity...", fg="green")
-            self.entity = x.build_entity_from_uri(rdf_url)
+            # build SG Entity
+            self.entity = x.build_entity_from_uri(rdf_url, SciGraphRdfEntity)
             return self.entity
         else:
             return None
@@ -92,13 +94,31 @@ class SciGraphClient(object):
     def print_report(self):
         if self.entity and self.response:
             # extract values
-            label = self.entity.bestLabel()
-            _types = " ".join([x for x in self.entity.rdftype_qname])
+            label = self.entity.bestLabel() or "N/A"
+            title = self.entity.title or "N/A"
+            doi = self.entity.doi or "N/A"
+            types = " ".join([x for x in self.entity.rdftype_qname])
             rdf_url, rdf_text = self.response.url, self.response.text
             # print
             click.echo(click.style('URI: ', fg='green') + click.style(' ' + rdf_url, reset=True))
-            click.echo(click.style('Title: ', fg='green') + click.style(' ' + label, reset=True))
+            click.echo(click.style('DOI: ', fg='green') + click.style(' ' + doi, reset=True))
+            click.echo(click.style('Label: ', fg='green') + click.style(' ' + label, reset=True))
+            click.echo(click.style('Title: ', fg='green') + click.style(' ' + title, reset=True))
             click.echo(click.style('Types: ', fg='green') + click.style(' ' + types, reset=True))
+
+
+
+
+
+
+
+def sgonto(local_name=""):
+    """
+    Util for creating SG ontology URIs eg http://scigraph.springernature.com/ontologies/core/Conference
+    """
+    return "http://scigraph.springernature.com/ontologies/core/" + local_name
+
+
 
 
 
@@ -110,5 +130,12 @@ class SciGraphRdfEntity(ontospy.RDF_Entity):
         super(SciGraphRdfEntity, self).__init__(uri, rdftype, namespaces, ext_model)
 
     def __repr__(self):
-        return "<SciGraphRdfEntity *%s*>" % ( self.uri)
+        return "<SciGraphRdfEntity *%s*>" % (self.uri)
 
+    @property
+    def title(self):
+        return firstEnglishStringInList(self.getValuesForProperty(sgonto("title")))
+    
+    @property
+    def doi(self):
+        return firstEnglishStringInList(self.getValuesForProperty(sgonto("doi")))
