@@ -33,7 +33,7 @@ class SciGraphClient(object):
 
         self.entity = None
 
-    def get_data_from_id(self, **kwargs):
+    def get_response_from_id(self, **kwargs):
         """
         Function.#TODO
         """
@@ -46,11 +46,11 @@ class SciGraphClient(object):
         if self.verbose: click.secho("Valid arguments: " + str(allowed_keys), fg="green")
         return None
 
-    def get_object_from_id(self, **kwargs):
+    def get_entity_from_id(self, **kwargs):
         """
         Function.#TODO
         """
-        self.get_data_from_id(**kwargs)
+        self.get_response_from_id(**kwargs)
         if self.response:
             rdf_url, rdf_text = self.response.url, self.response.text
             x = ontospy.Ontospy()

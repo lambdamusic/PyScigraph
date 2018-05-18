@@ -52,13 +52,13 @@ def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,
     s = SciGraphClient(verbose=verbose)
 
     if doi:
-        s.get_object_from_id(doi=doi)
+        s.get_entity_from_id(doi=doi)
     elif issn:
-        s.get_object_from_id(issn=issn)
+        s.get_entity_from_id(issn=issn)
     elif isbn:
-        s.get_object_from_id(isbn=isbn)
+        s.get_entity_from_id(isbn=isbn)
     elif uri:
-        s.get_object_from_id(uri=uri)
+        s.get_entity_from_id(uri=uri)
 
     if s.entity:
         if rdf:

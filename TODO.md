@@ -1,18 +1,21 @@
 
 # TODOs
 
-* add to Pypi @done
 
-* better rendering of results 
-
-* raw rdf return (turtle?)
-
-* catch error with wrong URL 
-
-* refactor into class model
 
 * allow to instantiate Ontospy ORM with SG structures
 
+* better rendering of results from cmd line
+
+* return other RDF formats (sync names with ontospy)
+
+* catch error with wrong URL 
+
+
+
+* add to Pypi @done
+* raw rdf return (turtle by default) @done
+* refactor into class model @done
 
 
 
