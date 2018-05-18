@@ -11,8 +11,6 @@ sleep 1
 python -m pyscigraph.tests.test_one
 sleep 2
 
-clear 
-
 
 echo ""
 echo "=================="
