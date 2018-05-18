@@ -18,12 +18,7 @@ def quicktest_cli(test_number=1):
     test_number = int(test_number)
 
     if test_number == 1:
-        click.secho("Querying DOI...", fg="red")
-        scigraph_redirect("10.1038/171737a0", "doi", True)
-        click.secho("Querying ISSN...", fg="red")
-        scigraph_redirect("2365-631X", "issn", True)
-        click.secho("Querying ISBN...", fg="red")
-        scigraph_redirect("978-90-481-9751-4", "isbn", True)
+        print('hello')
 
  
 if __name__ == '__main__':
