@@ -65,6 +65,7 @@ class SciGraphClient(object):
 
     def _do_request(self, payload, headers=None):
         """
+        Function.#TODO
         """
         if not headers:
             headers = self._default_headers
@@ -90,11 +91,24 @@ class SciGraphClient(object):
 
     def print_report(self):
         if self.entity and self.response:
-            rdf_url, rdf_text = self.response.url, self.response.text
-            click.echo(click.style('URI: ', fg='green') + click.style(' ' + rdf_url, reset=True))
-            click.echo(click.style('Title: ', fg='green') + click.style(' ' + self.entity.bestLabel(), reset=True))
+            # extract values
+            label = self.entity.bestLabel()
             _types = " ".join([x for x in self.entity.rdftype_qname])
-            click.echo(click.style('Types: ', fg='green') + click.style(' ' + _types, reset=True))
+            rdf_url, rdf_text = self.response.url, self.response.text
+            # print
+            click.echo(click.style('URI: ', fg='green') + click.style(' ' + rdf_url, reset=True))
+            click.echo(click.style('Title: ', fg='green') + click.style(' ' + label, reset=True))
+            click.echo(click.style('Types: ', fg='green') + click.style(' ' + types, reset=True))
 
 
+
+
+
+class SciGraphRdfEntity(ontospy.RDF_Entity):
+
+    def __init__(self, uri, rdftype=None, namespaces=None, ext_model=False):
+        super(SciGraphRdfEntity, self).__init__(uri, rdftype, namespaces, ext_model)
+
+    def __repr__(self):
+        return "<SciGraphRdfEntity *%s*>" % ( self.uri)
 
