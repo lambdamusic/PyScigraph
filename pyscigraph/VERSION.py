@@ -3,7 +3,7 @@
 
 
 
-__version__ = "0.2"   # LATEST? https://pypi.org/project/pyscigraph/
+__version__ = "0.3"   # LATEST? https://pypi.org/project/pyscigraph/
 __copyright__ = "CopyRight (C) 2015-2018 by Michele Pasin"
 __license__ = "Apache2.0"
 __author__ = "Michele Pasin"

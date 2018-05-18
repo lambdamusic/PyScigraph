@@ -3,7 +3,6 @@
 
 
 
-* allow to instantiate Ontospy ORM with SG structures
 
 * better rendering of results from cmd line
 
@@ -11,8 +10,11 @@
 
 * catch error with wrong URL 
 
+* add usage to README
 
 
+
+* allow to instantiate Ontospy ORM with SG structures @done
 * add to Pypi @done
 * raw rdf return (turtle by default) @done
 * refactor into class model @done
