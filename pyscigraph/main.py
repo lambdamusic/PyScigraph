@@ -5,34 +5,37 @@ import sys
 import click
 
 from .lib import *
+from .VERSION import *
 
 
+CMD_LINE_EXAMPLES = """
+Springer Nature SciGraph http://scigraph.springernature.com is a large linked data repository for the scholarly domain. Using this library one can quickly obtain information ('dereference') for objects stored in this database. 
 
+E.g.:
 
-CMD_LINE_EXAMPLES = """EXAMPLES:
 $ pyscigraph --doi 10.1038/171737a0 
 
 $ pyscigraph --issn 2365-631X
 
 $ pyscigraph --isbn 978-90-481-9751-4
+
+More features will be coming soon.
 """
-
-
 
 
 @click.command()
 @click.argument('args', nargs=-1)
-@click.option('--doi', help='Search a DOI')
-@click.option('--issn', help='Search a ISSN')
-@click.option('--isbn', help='Search a ISBN')
-@click.option('--uri', help='Get a SciGraph URI (default)')
-@click.option('--rdf', help='Return RDF: ttl, xml, n3, jsonld')
-@click.option('--examples', is_flag=True, help='Show some examples')
+@click.option('--doi', help='Retrieve a SciGraph publication via its DOI')
+@click.option('--issn', help='Retrieve a SciGraph publication via its ISSN')
+@click.option('--isbn', help='Retrieve a SciGraph publication via its ISBN')
+@click.option('--uri', help='Retrieve a SciGraph object via its URI')
+@click.option('--rdf', help="Serialize RDF: options are 'xml', 'n3', 'turtle', 'nt'")
+@click.option('--examples', is_flag=True, help='More examples')
 @click.option('--verbose', is_flag=True, help='Verbose logs')
 @click.pass_context
 def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,  examples=False, verbose=False):
-    """PySciGraph: client for Springer Nature SciGraph APIs.
-(see: http://scigraph.springernature.com)    
+    """PySciGraph: simple client for Springer Nature SciGraph.
+(eg: pyscigraph --doi 10.1038/171737a0)    
     """
 
     if examples:
@@ -41,10 +44,12 @@ def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,
 
     if not (doi or issn or isbn or uri) and not args:
         # print dir(search_cli)
+        click.secho("Release: " + VERSION, bold=True)
         click.echo(ctx.get_help())
         return
- 
-    valid_rdf_opts = ['ttl', 'xml', 'n3', 'jsonld']
+
+    # valid_rdf_opts = ['ttl', 'xml', 'n3', 'jsonld']
+    valid_rdf_opts = ['xml', 'n3', 'turtle', 'nt']
     if rdf and rdf not in valid_rdf_opts:
         click.secho("RDF options: " + str(valid_rdf_opts), fg="green")
         return
@@ -63,7 +68,7 @@ def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,
     if s.entity:
         if rdf:
             # TODO different serializatiions
-            print s.entity.rdf_source()
+            print s.entity.rdf_source(format=rdf)
         else:
             s.print_report()
     else:

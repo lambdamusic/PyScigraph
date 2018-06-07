@@ -1,57 +1,44 @@
-
 # TODOs
 
+- better rendering of results from cmd line
 
+- catch error with wrong URL
 
+- add usage to README
 
-* better rendering of results from cmd line
-
-* return other RDF formats (sync names with ontospy)
-
-* catch error with wrong URL 
-
-* add usage to README
-
-
-
+* return other RDF formats (sync names with ontospy) @done
 * allow to instantiate Ontospy ORM with SG structures @done
 * add to Pypi @done
 * raw rdf return (turtle by default) @done
 * refactor into class model @done
 
-
-
-### Ideal interaction 
-
+### Ideal interaction
 
 $ scigraph --uri XXXXX
 XX triples
 URI: ..
-Title: ... 
+Title: ...
 Types: ...
 Triples: xxx
 
-
-$ scigraph --doi XXXXX 
+$ scigraph --doi XXXXX
 XX triples
 URI: ..
-Title: ... 
+Title: ...
 Authors: xxx
 Year: xxxx
 Journal: xxxx
 
-
 $ scigraph --issn XXXXX --rdf jsonld
 XX triples
 URI: ..
-Title: ... 
+Title: ...
 JournalBrand: xxxx
-
 
 $ scigraph --isbn XXXXX --rdf jsonld
 XX triples
 URI: ..
-Title: ... 
+Title: ...
 Authors: xxx
 Year: xxxx
 Book Series: xxxx
