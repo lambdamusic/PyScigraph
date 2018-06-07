@@ -2,15 +2,15 @@
 
 - better rendering of results from cmd line
 
+@DONE
+
+- add usage to README @done
 - catch error with wrong URL
-
-- add usage to README
-
-* return other RDF formats (sync names with ontospy) @done
-* allow to instantiate Ontospy ORM with SG structures @done
-* add to Pypi @done
-* raw rdf return (turtle by default) @done
-* refactor into class model @done
+- return other RDF formats (sync names with ontospy) @done
+- allow to instantiate Ontospy ORM with SG structures @done
+- add to Pypi @done
+- raw rdf return (turtle by default) @done
+- refactor into class model @done
 
 ### Ideal interaction
 
