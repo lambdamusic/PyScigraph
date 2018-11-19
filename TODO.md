@@ -1,6 +1,7 @@
 # TODOs
 
 - better rendering of results from cmd line
+- examples folder
 
 @DONE
 
