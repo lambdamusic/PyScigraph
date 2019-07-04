@@ -7,78 +7,40 @@ from ontospy.core.utils import firstEnglishStringInList
 
 # Examples
 
-# curl -H 'Accept: application/ld+json' 'http://scigraph.springernature.com/things/articles/94a3b24581fa0638d91b2b339cd61f22'
+# curl -H 'Accept: application/ld+json' 'https://scigraph.springernature.com/pub.10.1007/978-1-62703-715-0_2'
 
-# curl -H 'Accept: application/ld+json' -L 'https://scigraph.springernature.com/api/redirect?doi=10.1038/171737a0'
 
 
 class SciGraphClient(object):
     """
-    Base class.
-    Args:
-        *args (list): list of arguments
-        **kwargs (dict): dict of keyword arguments
-    Attributes:
-        self
+    Simple class for accessing SciGraph entities
     """
-    _redirect_url = 'https://scigraph.springernature.com/api/redirect'
-    _default_headers = {'Accept': 'application/rdf+xml'}
+    url = 'https://scigraph.springernature.com/'
+    _default_headers = {'Accept': 'application/ld+json'}
 
     def __init__(self, *args, **kwargs):
         allowed_keys = ['verbose']
         self.__dict__.update((k, False) for k in allowed_keys)
         self.__dict__.update(
             (k, v) for k, v in kwargs.items() if k in allowed_keys)
-        self.response = None
 
-        self.entity = None
 
-    def get_response_from_id(self, **kwargs):
+    def _do_request(self, uri, rdf_format=""):
         """
-        Function.#TODO
+        Request data from back end service 
         """
-        allowed_keys = ['uri', 'doi', 'issn', 'isbn']
-        for k, v in kwargs.items():
-            if k in allowed_keys:
-                payload = {k: v}
-                self.response = self._do_request(payload)
-                return self.response
-        if self.verbose:
-            click.secho("Valid arguments: " + str(allowed_keys), fg="green")
-        return None
-
-    def get_entity_from_id(self, **kwargs):
-        """
-        Function.#TODO
-        """
-        self.get_response_from_id(**kwargs)
-        if self.response:
-            rdf_url, rdf_text = self.response.url, self.response.text
-            x = ontospy.Ontospy()
-            if self.verbose: click.secho("... loading graph", fg="green")
-            x.load_rdf(data=rdf_text)
-            click.secho("Parsing %d triples.." % x.triplesCount(), fg="green")
-            if self.verbose: click.secho("... building entity...", fg="green")
-            # build SG Entity
-            self.entity = x.build_entity_from_uri(rdf_url, SciGraphRdfEntity)
-            return self.entity
-        else:
-            return None
-
-    def _do_request(self, payload, headers=None):
-        """
-        Function.#TODO
-        """
-        if not headers:
+        if not rdf_format or rdf_format == "json-ld" or rdf_format == "jsonld":
             headers = self._default_headers
-        if 'uri' in payload:
-            url = payload['uri']
-            payload = {}
-        else:
-            url = self._redirect_url
-        if self.verbose: click.secho("... requesting rdf", fg="green")
+        elif rdf_format == "nt":
+            headers = {'Accept': 'application/n-triples'}
+        elif rdf_format == "turtle":
+            headers = {'Accept': 'text/turtle'}
+        elif rdf_format == "xml":
+            headers = {'Accept': 'application/rdf+xml'}
 
-        r = requests.get(url, headers=headers, params=payload)
+        if self.verbose: click.secho(f"... requesting rdf {uri}", fg="green")
+
+        r = requests.get(uri, headers=headers)
 
         if r.status_code == 404:
             return False
@@ -89,53 +51,99 @@ class SciGraphClient(object):
             if self.verbose: click.secho("Found " + r.url, fg="green")
             return r
 
-    def print_report(self):
-        if self.entity and self.response:
-            # extract values
-            label = self.entity.bestLabel() or "N/A"
-            title = self.entity.title or "N/A"
-            doi = self.entity.doi or "N/A"
-            types = " ".join([x for x in self.entity.rdftype_qname])
-            rdf_url, rdf_text = self.response.url, self.response.text
-            # print
-            click.echo(
-                click.style('URI: ', fg='green') +
-                click.style(' ' + rdf_url, reset=True))
-            click.echo(
-                click.style('DOI: ', fg='green') +
-                click.style(' ' + doi, reset=True))
-            click.echo(
-                click.style('Label: ', fg='green') +
-                click.style(' ' + label, reset=True))
-            click.echo(
-                click.style('Title: ', fg='green') +
-                click.style(' ' + title, reset=True))
-            click.echo(
-                click.style('Types: ', fg='green') +
-                click.style(' ' + types, reset=True))
+    def get_entity_from_uri(self, uri, rdf="json-ld"):
+        """
+        Simply dereference a scigraph URI
+        """
+        data = self._do_request(uri, rdf)
+        if data:
+            rdf_url, rdf_text = data.url, data.text
+            return rdf_text
+        else:
+            return None
 
 
-def sgonto(local_name=""):
-    """
-    Util for creating SG ontology URIs eg http://scigraph.springernature.com/ontologies/core/Conference
-    """
-    return "http://scigraph.springernature.com/ontologies/core/" + local_name
+    def get_entity_from_doi(self, doi, rdf="json-ld"):
+        """
+        Simply dereference a scigraph URI based on a DOI
+        """
+        uri  = self.url + "pub." + doi
+        data = self._do_request(uri, rdf)
+        if data:
+            rdf_url, rdf_text = data.url, data.text
+            return rdf_text
+        else:
+            return None
 
 
-class SciGraphRdfEntity(ontospy.RDF_Entity):
-    def __init__(self, uri, rdftype=None, namespaces=None, ext_model=False):
-        super(SciGraphRdfEntity, self).__init__(uri, rdftype, namespaces,
-                                                ext_model)
+    # BUG
+    # method with ontospy parsing which fails with JSON-LD
+    # 
+    # def get_entity_from_uri(self, uri):
+    #     """
+    #     Simply dereference a scigraph URI
+    #     """
+    #     data = self._do_request({'uri' : uri})
+    #     if data:
+    #         rdf_url, rdf_text = data.url, data.text
+    #         x = ontospy.Ontospy()
+    #         if self.verbose: click.secho("... loading graph", fg="green")
+    #         x.load_rdf(data=rdf_text, rdf_format="json-ld", verbose=True)
+    #         click.secho("Parsing %d triples.." % x.triplesCount(), fg="green")
+    #         if self.verbose: click.secho("... building entity...", fg="green")
+    #         # build SG Entity
+    #         self.entity = x.build_entity_from_uri(rdf_url, SciGraphRdfEntity)
+    #         return self.entity
+    #     else:
+    #         return None
 
-    def __repr__(self):
-        return "<SciGraphRdfEntity *%s*>" % (self.uri)
+    # def print_report(self):
+    #     if self.entity and self.response:
+    #         # extract values
+    #         label = self.entity.bestLabel() or "N/A"
+    #         title = self.entity.title or "N/A"
+    #         doi = self.entity.doi or "N/A"
+    #         types = " ".join([x for x in self.entity.rdftype_qname])
+    #         rdf_url, rdf_text = self.response.url, self.response.text
+    #         # print
+    #         click.echo(
+    #             click.style('URI: ', fg='green') +
+    #             click.style(' ' + rdf_url, reset=True))
+    #         click.echo(
+    #             click.style('DOI: ', fg='green') +
+    #             click.style(' ' + doi, reset=True))
+    #         click.echo(
+    #             click.style('Label: ', fg='green') +
+    #             click.style(' ' + label, reset=True))
+    #         click.echo(
+    #             click.style('Title: ', fg='green') +
+    #             click.style(' ' + title, reset=True))
+    #         click.echo(
+    #             click.style('Types: ', fg='green') +
+    #             click.style(' ' + types, reset=True))
 
-    @property
-    def title(self):
-        return firstEnglishStringInList(
-            self.getValuesForProperty(sgonto("title")))
 
-    @property
-    def doi(self):
-        return firstEnglishStringInList(
-            self.getValuesForProperty(sgonto("doi")))
+# def sgonto(local_name=""):
+#     """
+#     Util for creating SG ontology URIs eg http://scigraph.springernature.com/ontologies/core/Conference
+#     """
+#     return "http://scigraph.springernature.com/ontologies/core/" + local_name
+
+
+# class SciGraphRdfEntity(ontospy.RDF_Entity):
+#     def __init__(self, uri, rdftype=None, namespaces=None, ext_model=False):
+#         super(SciGraphRdfEntity, self).__init__(uri, rdftype, namespaces,
+#                                                 ext_model)
+
+#     def __repr__(self):
+#         return "<SciGraphRdfEntity *%s*>" % (self.uri)
+
+#     @property
+#     def title(self):
+#         return firstEnglishStringInList(
+#             self.getValuesForProperty(sgonto("title")))
+
+#     @property
+#     def doi(self):
+#         return firstEnglishStringInList(
+#             self.getValuesForProperty(sgonto("doi")))
