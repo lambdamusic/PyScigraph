@@ -68,7 +68,7 @@ def main_cli(ctx, args=None, doi=None, issn=None, isbn=None, uri=None, rdf=None,
     if s.entity:
         if rdf:
             # TODO different serializatiions
-            print s.entity.rdf_source(format=rdf)
+            print(s.entity.rdf_source(format=rdf))
         else:
             s.print_report()
     else:
