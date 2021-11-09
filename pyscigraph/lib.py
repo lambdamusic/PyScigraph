@@ -1,9 +1,9 @@
 import requests
 import rdflib
-import rdflib_jsonld
 import click
-import ontospy
-from ontospy.core.utils import firstEnglishStringInList
+
+from .utils import *
+
 
 # Examples
 
@@ -24,13 +24,52 @@ class SciGraphClient(object):
         self.__dict__.update(
             (k, v) for k, v in kwargs.items() if k in allowed_keys)
 
+        self.uri = None
+        self.data = None # the raw data coming back from SciGraph
+        self.rdfgraph = rdflib.ConjunctiveGraph()
 
-    def _do_request(self, uri, rdf_format=""):
+    @property
+    def triples_count(self):
+        """
+        Simply dereference a scigraph URI
+        """
+        return len(self.rdfgraph)
+
+    def get_entity_from_uri(self, uri, rdf_format):
+        """
+        Simply dereference a scigraph URI
+        """
+        data = self._do_request(uri, rdf_format)
+        if data:
+            self.uri = uri
+            self.data = data.text
+            self._build_rdf_object(rdf_format)
+            return self.data
+        else:
+            return None
+
+
+    def get_entity_from_doi(self, doi, rdf_format):
+        """
+        Simply dereference a scigraph URI based on a DOI
+        """
+        uri  = self.url + "pub." + doi
+        data = self._do_request(uri, rdf_format)
+        if data:
+            self.uri = uri
+            self.data = data.text
+            return self.data
+        else:
+            return None
+
+
+    def _do_request(self, uri, rdf_format):
         """
         Request data from back end service 
         """
+        
         if not rdf_format or rdf_format == "json-ld" or rdf_format == "jsonld":
-            headers = self._default_headers
+            headers = {'Accept': 'application/ld+json'}
         elif rdf_format == "nt":
             headers = {'Accept': 'application/n-triples'}
         elif rdf_format == "turtle":
@@ -38,112 +77,25 @@ class SciGraphClient(object):
         elif rdf_format == "xml":
             headers = {'Accept': 'application/rdf+xml'}
 
-        if self.verbose: click.secho(f"... requesting rdf {uri}", fg="green")
+        if self.verbose: printDebug(f">> Requesting format '{rdf_format}' from URI: {uri}", dim=True)
 
-        r = requests.get(uri, headers=headers)
+        response = requests.get(uri, headers=headers)
 
-        if r.status_code == 404:
+        if response.status_code == 404:
             return False
         else:
-            if r.url.startswith("https://"):
+            if response.url.startswith("https://"):
                 # https ok for retrieval, but rdf payload always uses http uris
-                r.url = r.url.replace("https://", "http://")
-            if self.verbose: click.secho("Found " + r.url, fg="green")
-            return r
+                response.url = response.url.replace("https://", "http://")
+            if self.verbose: printDebug(f">> Found: {response.url}\n----------------", dim=True)
+            return response
 
-    def get_entity_from_uri(self, uri, rdf="json-ld"):
+
+    def _build_rdf_object(self, rdf_format):
+        """Use rdflib to create a graph using the scigraph data returned
         """
-        Simply dereference a scigraph URI
-        """
-        data = self._do_request(uri, rdf)
-        if data:
-            rdf_url, rdf_text = data.url, data.text
-            return rdf_text
-        else:
-            return None
+        if rdf_format == "jsonld":
+            rdf_format = "json-ld" # fix for rdflib
+        if self.data:
+            self.rdfgraph.parse(data=self.data, format=rdf_format)
 
-
-    def get_entity_from_doi(self, doi, rdf="json-ld"):
-        """
-        Simply dereference a scigraph URI based on a DOI
-        """
-        uri  = self.url + "pub." + doi
-        data = self._do_request(uri, rdf)
-        if data:
-            rdf_url, rdf_text = data.url, data.text
-            return rdf_text
-        else:
-            return None
-
-
-    # BUG
-    # method with ontospy parsing which fails with JSON-LD
-    # 
-    # def get_entity_from_uri(self, uri):
-    #     """
-    #     Simply dereference a scigraph URI
-    #     """
-    #     data = self._do_request({'uri' : uri})
-    #     if data:
-    #         rdf_url, rdf_text = data.url, data.text
-    #         x = ontospy.Ontospy()
-    #         if self.verbose: click.secho("... loading graph", fg="green")
-    #         x.load_rdf(data=rdf_text, rdf_format="json-ld", verbose=True)
-    #         click.secho("Parsing %d triples.." % x.triplesCount(), fg="green")
-    #         if self.verbose: click.secho("... building entity...", fg="green")
-    #         # build SG Entity
-    #         self.entity = x.build_entity_from_uri(rdf_url, SciGraphRdfEntity)
-    #         return self.entity
-    #     else:
-    #         return None
-
-    # def print_report(self):
-    #     if self.entity and self.response:
-    #         # extract values
-    #         label = self.entity.bestLabel() or "N/A"
-    #         title = self.entity.title or "N/A"
-    #         doi = self.entity.doi or "N/A"
-    #         types = " ".join([x for x in self.entity.rdftype_qname])
-    #         rdf_url, rdf_text = self.response.url, self.response.text
-    #         # print
-    #         click.echo(
-    #             click.style('URI: ', fg='green') +
-    #             click.style(' ' + rdf_url, reset=True))
-    #         click.echo(
-    #             click.style('DOI: ', fg='green') +
-    #             click.style(' ' + doi, reset=True))
-    #         click.echo(
-    #             click.style('Label: ', fg='green') +
-    #             click.style(' ' + label, reset=True))
-    #         click.echo(
-    #             click.style('Title: ', fg='green') +
-    #             click.style(' ' + title, reset=True))
-    #         click.echo(
-    #             click.style('Types: ', fg='green') +
-    #             click.style(' ' + types, reset=True))
-
-
-# def sgonto(local_name=""):
-#     """
-#     Util for creating SG ontology URIs eg http://scigraph.springernature.com/ontologies/core/Conference
-#     """
-#     return "http://scigraph.springernature.com/ontologies/core/" + local_name
-
-
-# class SciGraphRdfEntity(ontospy.RDF_Entity):
-#     def __init__(self, uri, rdftype=None, namespaces=None, ext_model=False):
-#         super(SciGraphRdfEntity, self).__init__(uri, rdftype, namespaces,
-#                                                 ext_model)
-
-#     def __repr__(self):
-#         return "<SciGraphRdfEntity *%s*>" % (self.uri)
-
-#     @property
-#     def title(self):
-#         return firstEnglishStringInList(
-#             self.getValuesForProperty(sgonto("title")))
-
-#     @property
-#     def doi(self):
-#         return firstEnglishStringInList(
-#             self.getValuesForProperty(sgonto("doi")))

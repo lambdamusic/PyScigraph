@@ -1,23 +1,34 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys
+
 import click
 
 from .lib import *
+from .utils import *
 from .VERSION import *
 
 
 CMD_LINE_EXAMPLES = """
-Springer Nature SciGraph http://scigraph.springernature.com is a large linked data repository of scholarly related metadata. Using this library one can quickly obtain information ('dereference') for objects stored in this database. 
+PySciGraph examples:
 
-E.g.:
-
+>> Get JSONLD for a SN publication from its DOI
 $ pyscigraph --doi 10.1038/171737a0 
 
+>> Get JSONLD for a SN publication from its full URI
 $ pyscigraph --uri http://scigraph.springernature.com/pub.10.1038/171737a0
 
+>> Serialise RDF to Turtle format (default= JSONLD)
 $ pyscigraph --doi 10.1038/171737a0 --rdf turtle
+
+>> Get JSONLD for other entity types
+$ pyscigraph --uri http://scigraph.springernature.com/clinicaltrial.NCT05060562
+$ pyscigraph --uri http://scigraph.springernature.com/grant.2691278
+$ pyscigraph --uri http://scigraph.springernature.com/patent.US-10355159-B2
+$ pyscigraph --uri http://scigraph.springernature.com/journal.1136213
+$ pyscigraph --uri http://www.grid.ac/institutes/grid.511171.2
+$ pyscigraph --uri http://scigraph.springernature.com/person.01311060163.26
+
 """
 
 
@@ -25,27 +36,28 @@ $ pyscigraph --doi 10.1038/171737a0 --rdf turtle
 @click.argument('args', nargs=-1)
 @click.option('--doi', help='Retrieve a SciGraph publication via its DOI')
 @click.option('--uri', help='Retrieve a SciGraph object via its URI')
-@click.option('--rdf', help="Serialize RDF: options are 'jsonld' (default), 'xml', 'turtle', 'nt'")
+@click.option('--rdf', help="Serialize RDF: options are 'jsonld' (default), 'xml', 'turtle', 'nt'", default="jsonld")
 @click.option('--examples', is_flag=True, help='More examples')
 @click.option('--verbose', is_flag=True, help='Verbose logs')
 @click.pass_context
 def main_cli(ctx, args=None, doi=None, uri=None, rdf=None,  examples=False, verbose=False):
-    """PySciGraph: simple client for Springer Nature SciGraph.
-(eg: pyscigraph --doi 10.1038/171737a0)    
+    """PySciGraph: simple CLI for Springer Nature SciGraph http://scigraph.springernature.com
+
+    Eg: pyscigraph --doi 10.1038/171737a0
     """
+    printDebug(f"PySciGraph: {VERSION}\n----------------" , dim=True)
 
     if examples:
-        click.secho(CMD_LINE_EXAMPLES, fg="green")
+        printDebug(CMD_LINE_EXAMPLES)
         return
 
     if not (doi or uri) and not args:
-        click.secho("Release: " + VERSION, bold=True)
-        click.echo(ctx.get_help())
+        printDebug(ctx.get_help())
         return
 
     valid_rdf_opts = ['jsonld', 'xml', 'turtle', 'nt']
     if rdf and rdf not in valid_rdf_opts:
-        click.secho("RDF options: " + str(valid_rdf_opts), fg="green")
+        printDebug("RDF options: " + str(valid_rdf_opts), fg="green")
         return
 
     s = SciGraphClient(verbose=verbose)
@@ -56,9 +68,11 @@ def main_cli(ctx, args=None, doi=None, uri=None, rdf=None,  examples=False, verb
         res = s.get_entity_from_uri(uri, rdf)
 
     if res:
-        print(res)
+        printDebug("Payload:", dim=True)
+        printInfo(res)
+        printDebug(f"----------------\nURI: {s.uri}\nTriples: {s.triples_count}", dim=True)
     else:
-        click.secho("Not found", fg="green")
+        printDebug("Not found", fg="green")
 
 
 if __name__ == '__main__':
